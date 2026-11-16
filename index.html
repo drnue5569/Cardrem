@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Memory Grid 3x6</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background: #121212;
+            color: #fff;
+            padding: 10px;
+            margin: 0;
+        }
+        h3 { margin: 10px 0 5px 0; font-size: 18px; }
+        p { color: #aaa; font-size: 13px; margin-bottom: 15px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .card-slot {
+            background: #1e1e1e;
+            border: 2px dashed #444;
+            height: 95px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #777;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn-reset {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: #ff4d4d;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-reset:active { background: #cc0000; }
+    </style>
+</head>
+<body>
+
+    <h3>📱 ตารางจำไพ่ 3x6 (มือถือ)</h3>
+    <p>จิ้มช่องเพื่อถ่ายรูปไพ่จาก iPad ทีละช่องตามตำแหน่งจริง</p>
+
+    <div class="grid" id="gridContainer"></div>
+
+    <button class="btn-reset" onclick="resetGrid()">รีเซ็ตตารางใหม่ทั้งหมด</button>
+
+    <script>
+        const gridContainer = document.getElementById('gridContainer');
+        const totalSlots = 18; // 3 แถว x 6 หลัก
+
+        // สร้างช่อง Grid 18 ช่อง
+        for (let i = 1; i <= totalSlots; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'card-slot';
+            slot.id = `slot-${i}`;
+            slot.innerHTML = `ช่อง ${i}`;
+            
+            // สร้าง input สำหรับเปิดกล้องหลังมือถือ
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'environment'; // บังคับเปิดกล้องหลัง
+            
+            // เมื่อจิ้มที่ช่อง ให้เปิดกล้องมือถือทันที
+            slot.onclick = () => input.click();
+            
+            // เมื่อถ่ายรูปเสร็จ นำรูปมาแปะลงช่อง
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        slot.innerHTML = `<img src="${event.target.result}" alt="Card">`;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            slot.appendChild(input);
+            gridContainer.appendChild(slot);
+        }
+
+        function resetGrid() {
+            if (confirm("ต้องการล้างรูปทั้งหมดเพื่อเริ่มเกมใหม่ใช่ไหม?")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
