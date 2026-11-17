@@ -13,7 +13,7 @@
             padding: 10px;
             margin: 0;
         }
-        h3 { margin: 10px 0 5px 0; font-size: 18px; }
+        h3 { margin: 15px 0 5px 0; font-size: 18px; }
         p { color: #aaa; font-size: 13px; margin-bottom: 15px; }
         .grid {
             display: grid;
@@ -42,6 +42,7 @@
             object-fit: cover;
             border-radius: 6px;
         }
+        /* ซ่อน input แต่เปิดให้รับค่าจากกล้องตรงๆ */
         input[type="file"] {
             display: none;
         }
@@ -61,39 +62,37 @@
 </head>
 <body>
 
-    <h3>📱 ตารางจำไพ่ 3x6 (มือถือ)</h3>
-    <p>จิ้มช่องเพื่อถ่ายรูปไพ่จาก iPad ทีละช่องตามตำแหน่งจริง</p>
+    <h3>⚡ ตารางจำไพ่ (กดถ่ายปั๊บ วางปั๊บ)</h3>
+    <p>แตะช่อง ➔ ถ่ายรูป ➔ ลงตารางทันทีไม่ต้องกดเลือกซ้ำ</p>
 
     <div class="grid" id="gridContainer"></div>
 
-    <button class="btn-reset" onclick="resetGrid()">รีเซ็ตตารางใหม่ทั้งหมด</button>
+    <button class="btn-reset" onclick="resetGrid()">รีเซ็ตตารางใหม่</button>
 
     <script>
         const gridContainer = document.getElementById('gridContainer');
         const totalSlots = 18; // 3 แถว x 6 หลัก
 
-        // สร้างช่อง Grid 18 ช่อง
         for (let i = 1; i <= totalSlots; i++) {
             const slot = document.createElement('div');
             slot.className = 'card-slot';
             slot.id = `slot-${i}`;
             slot.innerHTML = `ช่อง ${i}`;
             
-            // สร้าง input สำหรับเปิดกล้องหลังมือถือ
+            // สร้าง input สำหรับดึงกล้องหลังโดยตรง
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
-            input.capture = 'environment'; // บังคับเปิดกล้องหลัง
+            input.capture = 'environment'; // คำสั่งบังคับเปิดกล้องหลังมือถือทันที
             
-            // เมื่อจิ้มที่ช่อง ให้เปิดกล้องมือถือทันที
             slot.onclick = () => input.click();
             
-            // เมื่อถ่ายรูปเสร็จ นำรูปมาแปะลงช่อง
             input.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (event) => {
+                        // แทนที่ช่องด้วยรูปที่ถ่ายทันที ไม่ต้องกดปุ่มยืนยัน
                         slot.innerHTML = `<img src="${event.target.result}" alt="Card">`;
                     }
                     reader.readAsDataURL(file);
@@ -105,7 +104,7 @@
         }
 
         function resetGrid() {
-            if (confirm("ต้องการล้างรูปทั้งหมดเพื่อเริ่มเกมใหม่ใช่ไหม?")) {
+            if (confirm("ล้างตารางทั้งหมด?")) {
                 location.reload();
             }
         }
