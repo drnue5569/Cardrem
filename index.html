@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Memory Grid 3x6</title>
+    <title>Card Memory Grid 3x6 (Crop View)</title>
     <style>
         body {
             font-family: sans-serif;
@@ -15,6 +15,7 @@
         }
         h3 { margin: 15px 0 5px 0; font-size: 18px; }
         p { color: #aaa; font-size: 13px; margin-bottom: 15px; }
+        
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -42,7 +43,6 @@
             object-fit: cover;
             border-radius: 6px;
         }
-        /* ซ่อน input แต่เปิดให้รับค่าจากกล้องตรงๆ */
         input[type="file"] {
             display: none;
         }
@@ -62,16 +62,21 @@
 </head>
 <body>
 
-    <h3>⚡ ตารางจำไพ่ (กดถ่ายปั๊บ วางปั๊บ)</h3>
-    <p>แตะช่อง ➔ ถ่ายรูป ➔ ลงตารางทันทีไม่ต้องกดเลือกซ้ำ</p>
+    <h3>🎯 ตารางจำไพ่ (ระบบกรอบเล็งด่วน)</h3>
+    <p>จิ้มช่อง ➔ เอาไอแพดไว้ในกรอบ ➔ ถ่ายรูปตัดเฉพาะส่วนอัตโนมัติ</p>
 
     <div class="grid" id="gridContainer"></div>
 
     <button class="btn-reset" onclick="resetGrid()">รีเซ็ตตารางใหม่</button>
 
+    <!-- Canvas สำหรับประมวลผลตัดภาพ (ซ่อนไว้ไม่ให้เกะกะสายตา) -->
+    <canvas id="cropCanvas" style="display:none;"></canvas>
+
     <script>
         const gridContainer = document.getElementById('gridContainer');
         const totalSlots = 18; // 3 แถว x 6 หลัก
+        const canvas = document.getElementById('cropCanvas');
+        const ctx = canvas.getContext('2d');
 
         for (let i = 1; i <= totalSlots; i++) {
             const slot = document.createElement('div');
@@ -79,11 +84,10 @@
             slot.id = `slot-${i}`;
             slot.innerHTML = `ช่อง ${i}`;
             
-            // สร้าง input สำหรับดึงกล้องหลังโดยตรง
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
-            input.capture = 'environment'; // คำสั่งบังคับเปิดกล้องหลังมือถือทันที
+            input.capture = 'environment'; // เปิดกล้องหลัง
             
             slot.onclick = () => input.click();
             
@@ -92,8 +96,24 @@
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        // แทนที่ช่องด้วยรูปที่ถ่ายทันที ไม่ต้องกดปุ่มยืนยัน
-                        slot.innerHTML = `<img src="${event.target.result}" alt="Card">`;
+                        const img = new Image();
+                        img.onload = () => {
+                            // คำนวณตัดเฉพาะตรงกลางภาพ (Crop ตรงกลาง เพื่อให้ได้ไพ่เน้นๆ ไม่หลุดโฟกัส)
+                            const size = Math.min(img.width, img.height); // เอาสัดส่วนสี่เหลี่ยมจัตุรัส
+                            const startX = (img.width - size) / 2;
+                            const startY = (img.height - size) / 2;
+
+                            canvas.width = 300;
+                            canvas.height = 300;
+
+                            // วาดภาพลง Canvas แล้วตัดเฉพาะส่วนตรงกลาง
+                            ctx.drawImage(img, startX, startY, size, size, 0, 0, 300, 300);
+
+                            // แปลงภาพที่ตัดแล้วมาแปะใส่ช่อง Grid
+                            const croppedImageUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            slot.innerHTML = `<img src="${croppedImageUrl}" alt="Card">`;
+                        }
+                        img.src = event.target.result;
                     }
                     reader.readAsDataURL(file);
                 }
